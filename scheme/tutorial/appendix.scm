@@ -147,10 +147,107 @@ a-vector
 (my- 10 1 2 3)
 
 ;; TODO
+;;
 ;; Symbols
+;; Test whether 2 symbols are identical
+(eq? 'a 'a)
+(eq? 'a 'b)
+
+(define (mul? expression)
+  (and (pair? expression)
+       (eq? (car expression '*)))
+  )
+
+(mul? '(* 2 4))
+
+(mul? '(+ 2 4))
+
 
 ;; Backquote
+;; Quasiquoting allows evaluating elements within a quoted expression
+;; backtick ` for quasiquote
+;; comma before
+(let ((name 'a)) `(list ,name ',name)) ;; (list a 'a)
+(let ((name 'a)) '(list ,name ',name)) ;; (list (unquote name) (quote (unquote name)))
+
+; Can splice lists together with ,@ operator
+;
+`(a b ,@(list (+ 20 3) (- 20 3)) d) ; (a b 23 17 d)
+
 
 ;; Effects
+;; Side effect-ful functions
+(write-line 5)
+(write-line "Print out")
+
+; Final block of a let statement is the return value.
+(let ((name "David"))
+  (write-line name)
+  name
+  )
+
 
 ;; Assignments
+;; Good practice to avoid assignments
+;; Mutable variables
+
+(define (make-counter)
+  ; Introduce variable to mutate in scope
+  (let ((count 0))
+    (lambda ()
+      ; Set the value in the closure
+      (set! count (+ count 1))
+      count)))
+(define c1 (make-counter))
+(define c2 (make-counter))
+(c1) ; 1
+(c1) ; 2
+
+(c2) ; 1
+(c2) ; 2
+
+; Can assign to elements of data structures
+;
+(define pair '(1 2))
+pair ; 1 2
+(set-car! pair 5)
+pair ; 5 2
+(set-cdr! pair 10)
+pair ; 5 10
+(set-cdr! pair (list 1 2 3))
+pair ; 5 1 2 3
+
+(set-car! pair (list 1 2 3))
+pair ; (1 2 3) 1 2 3
+
+
+; lists
+(define index 2)
+(define new-value 100)
+
+(define lst (list 1 2 3))
+(list-set! lst index new-value)
+lst ; (1 2 100)
+
+(define vec (vector 1 2 3))
+(vector-set! vec index new-value)
+vec ; #(1 2 100)
+
+; Without setters
+(define-record-type point-unsettable
+  (make-point x y)
+  point?
+  (x point-x)
+  (y point-y))
+
+; with setters
+(define-record-type settable-point
+  (make-settable-point x y)
+  point?
+  (x point-x set-x!)
+  (y point-y set-y!))
+
+(define p (make-settable-point 1 2))
+(point-x p) ; 1
+(set-x! p 3)
+(point-x p) ; 3
